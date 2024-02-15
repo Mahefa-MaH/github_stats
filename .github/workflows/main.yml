@@ -10,12 +10,17 @@ on:
 permissions:
   contents: write
 
+# A workflow run is made up of one or more jobs that can run sequentially or in
+# parallel
 jobs:
+  # This workflow contains a single job called "build"
   build:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    # Sequence of tasks that will be executed as part of the job
     steps:
-    # Check out repository under $GITHUB_WORKSPACE, so the job can access it
+    # Checks-out repository under $GITHUB_WORKSPACE, so the job can access it
     - uses: actions/checkout@v3
 
     # Run using Python 3.8 for consistency and aiohttp
@@ -25,6 +30,15 @@ jobs:
         python-version: '3.8'
         architecture: 'x64'
         cache: 'pip'
+
+    # Cache dependencies. From:
+    # https://github.com/actions/cache/blob/master/examples.md#python---pip
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     # Install dependencies with `pip`
     - name: Install requirements
@@ -36,6 +50,7 @@ jobs:
     - name: Generate images
       run: |
         python3 --version
+        # python3 -m pip install backoff
         python3 generate_images.py
       env:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
